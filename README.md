@@ -11,7 +11,7 @@ This extension provides the following features:
 
 ## Requirements
 
-This extension requires the 7TV browser extension to function
+Currently this extension requires the 7TV browser extension to function
 
 ## Usage
 
