@@ -1,0 +1,29 @@
+{
+  "manifest_version": 2,
+  "name": "Twitch chat search",
+  "version": "0.1.0",
+  "description": "Search twitch chat for messages containing a specific string or messages sent by a specific user. The result will be highlighted in green.",
+  "icons": {
+    "48": "icons/paint-48.png"
+  },
+  "permissions": [
+    "tabs"
+  ],
+  "browser_action": {
+    "default_icon": {
+      "32": "icons/paint-32.png"
+    },
+    "default_title": "Twitch chat search",
+    "default_popup": "popup/chatsearch.html"
+  },
+  "content_scripts": [
+    {
+      "matches": [
+        "*://*.twitch.tv/*"
+      ],
+      "js": [
+        "content_scripts/filter.js"
+      ]
+    }
+  ]
+}
