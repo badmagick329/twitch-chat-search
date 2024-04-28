@@ -9,6 +9,10 @@ This extension provides the following features:
 - 🔍 **Search Functionality**: Allows users to search Twitch chat for messages containing a specific string or messages sent by a specific user.
 - 🖌️ **Highlighting**: Highlights search results in green for easy identification within the Twitch chat interface.
 
+## Requirements
+
+This extension requires the 7TV browser extension to function
+
 ## Usage
 
 Once installed, the extension lets you perform search through the popup when you click on the extension button. Users can enter a search string or specify a username to filter chat messages. Matching messages will be highlighted in green for easy identification.
