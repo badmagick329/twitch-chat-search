@@ -80,7 +80,6 @@ function _retrieveMessages() {
     hasSevenTv =
       document.querySelector(".seventv-chat-message-background") !== null;
   }
-  console.log("hasSevenTv", hasSevenTv);
   return hasSevenTv
     ? document.querySelectorAll(".seventv-chat-message-background")
     : document.querySelectorAll(".chat-line__message");
@@ -91,7 +90,6 @@ function _retrieveMessageTexts(message) {
     hasSevenTv =
       document.querySelector(".seventv-chat-message-background") !== null;
   }
-  console.log("hasSevenTv", hasSevenTv);
   return hasSevenTv
     ? message
         .querySelector(".seventv-chat-message-body")
@@ -104,7 +102,6 @@ function _retrieveUsername(message) {
     hasSevenTv =
       document.querySelector(".seventv-chat-message-background") !== null;
   }
-  console.log("hasSevenTv", hasSevenTv);
   return hasSevenTv
     ? message.querySelector(".seventv-chat-user-username").textContent
     : message.dataset.aUser;
