@@ -4,6 +4,8 @@ const resetButton = document.querySelector("#reset-button");
 const responseMessage = document.querySelector("#response-message");
 const defaultText =
   "Enter text to search for chat messages by a username or any other word.";
+const DEBOUNCE_TIMEOUT = 300;
+let debounceTimer;
 
 function handleResponse(message) {
   if (message.response) {
@@ -39,12 +41,14 @@ messageSearchInput.addEventListener("input", (e) => {
     userSearchInput.value = "";
   }
 
-  getActiveTab().then((tabs) => {
-    const sending = browser.tabs.sendMessage(tabs[0].id, {
-      message: e.target.value,
+  debounce(() => {
+    getActiveTab().then((tabs) => {
+      const sending = browser.tabs.sendMessage(tabs[0].id, {
+        message: e.target.value,
+      });
+      sending.then(handleResponse, handleError);
     });
-    sending.then(handleResponse, handleError);
-  });
+  })();
 });
 
 userSearchInput.addEventListener("input", (e) => {
@@ -56,12 +60,14 @@ userSearchInput.addEventListener("input", (e) => {
     messageSearchInput.value = "";
   }
 
-  getActiveTab().then((tabs) => {
-    const sending = browser.tabs.sendMessage(tabs[0].id, {
-      username: e.target.value,
+  debounce(() => {
+    getActiveTab().then((tabs) => {
+      const sending = browser.tabs.sendMessage(tabs[0].id, {
+        username: e.target.value,
+      });
+      sending.then(handleResponse, handleError);
     });
-    sending.then(handleResponse, handleError);
-  });
+  })();
 });
 
 function sendReset() {
@@ -80,4 +86,17 @@ function createResponseMessage(response) {
     default:
       return `${response} messages found and highlighted`;
   }
+}
+
+function debounce(func) {
+  return (...args) => {
+    if (!debounceTimer) {
+      func.apply(this, args);
+    }
+    clearTimeout(debounceTimer);
+    debounceTimer = setTimeout(() => {
+      debounceTimer = undefined;
+      func.apply(this, args);
+    }, DEBOUNCE_TIMEOUT);
+  };
 }
