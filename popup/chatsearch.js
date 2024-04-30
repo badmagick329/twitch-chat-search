@@ -1,25 +1,83 @@
-let messageSearchInput = document.querySelector("#message-search-input");
-let userSearchInput = document.querySelector("#user-search-input");
-let resetButton = document.querySelector("#reset-button");
+const messageSearchInput = document.querySelector("#message-search-input");
+const userSearchInput = document.querySelector("#user-search-input");
+const resetButton = document.querySelector("#reset-button");
+const responseMessage = document.querySelector("#response-message");
+const defaultText =
+  "Enter text to search for chat messages by a username or any other word.";
+
+function handleResponse(message) {
+  if (message.response) {
+    responseMessage.textContent = createResponseMessage(message.response);
+  } else if (message.reset) {
+    messageSearchInput.value = "";
+    userSearchInput.value = "";
+    responseMessage.textContent = defaultText;
+  }
+}
+
+function handleError(error) {
+  responseMessage.textContent = "An error occurred";
+}
 
 function getActiveTab() {
   return browser.tabs.query({ active: true, currentWindow: true });
 }
 
-messageSearchInput.onchange = function (e) {
-  getActiveTab().then((tabs) => {
-    browser.tabs.sendMessage(tabs[0].id, { message: e.target.value });
-  });
-};
-
 resetButton.onclick = function () {
   getActiveTab().then((tabs) => {
-    browser.tabs.sendMessage(tabs[0].id, { reset: true });
+    const sending = browser.tabs.sendMessage(tabs[0].id, { reset: true });
+    sending.then(handleResponse, handleError);
   });
 };
 
-userSearchInput.onchange = function (e) {
+messageSearchInput.addEventListener("input", (e) => {
+  if (e.target.value === "") {
+    sendReset();
+    return;
+  }
+  if (userSearchInput.value !== "") {
+    userSearchInput.value = "";
+  }
+
   getActiveTab().then((tabs) => {
-    browser.tabs.sendMessage(tabs[0].id, { username: e.target.value });
+    const sending = browser.tabs.sendMessage(tabs[0].id, {
+      message: e.target.value,
+    });
+    sending.then(handleResponse, handleError);
   });
-};
+});
+
+userSearchInput.addEventListener("input", (e) => {
+  if (e.target.value === "") {
+    sendReset();
+    return;
+  }
+  if (messageSearchInput.value !== "") {
+    messageSearchInput.value = "";
+  }
+
+  getActiveTab().then((tabs) => {
+    const sending = browser.tabs.sendMessage(tabs[0].id, {
+      username: e.target.value,
+    });
+    sending.then(handleResponse, handleError);
+  });
+});
+
+function sendReset() {
+  getActiveTab().then((tabs) => {
+    const sending = browser.tabs.sendMessage(tabs[0].id, { reset: true });
+    sending.then(handleResponse, handleError);
+  });
+}
+
+function createResponseMessage(response) {
+  switch (response) {
+    case 0:
+      return "No messages found";
+    case 1:
+      return "1 message found and highlighted";
+    default:
+      return `${response} messages found and highlighted`;
+  }
+}

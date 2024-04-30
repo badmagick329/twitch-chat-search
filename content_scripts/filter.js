@@ -1,108 +1,116 @@
-browser.runtime.onMessage.addListener(filterMessages);
-browser.runtime.onMessage.addListener(reset);
-browser.runtime.onMessage.addListener(filterUsers);
-
-let hasSevenTv = null;
-
-function filterMessages(request, sender, sendResponse) {
-  if (!request.message) {
-    return;
+class UIReader {
+  constructor() {
+    this.hasSevenTv = null;
   }
-  _filterMessages(request.message);
+
+  messages() {
+    if (this.hasSevenTv === null) {
+      this.hasSevenTv =
+        document.querySelector(".seventv-chat-message-background") !== null;
+    }
+    return this.hasSevenTv
+      ? document.querySelectorAll(".seventv-chat-message-background")
+      : document.querySelectorAll(".chat-line__message");
+  }
+
+  textsInMessage(message) {
+    if (this.hasSevenTv === null) {
+      this.hasSevenTv =
+        document.querySelector(".seventv-chat-message-background") !== null;
+    }
+    return this.hasSevenTv
+      ? message
+          .querySelector(".seventv-chat-message-body")
+          .querySelectorAll(".text-token")
+      : message.querySelectorAll(".text-fragment");
+  }
+
+  username(message) {
+    if (this.hasSevenTv === null) {
+      this.hasSevenTv =
+        document.querySelector(".seventv-chat-message-background") !== null;
+    }
+    return this.hasSevenTv
+      ? message.querySelector(".seventv-chat-user-username").textContent
+      : message.dataset.aUser;
+  }
 }
 
-function reset(request, sender, sendResponse) {
-  if (!request.reset) {
-    return;
+class HighlightedMessages {
+  constructor() {
+    this.allMessages = [];
+    this.highlightCount = 0;
   }
-  _reset();
-}
 
-function filterUsers(request, sender, sendResponse) {
-  if (!request.username) {
-    return;
+  byUser(allMessages, username) {
+    this.allMessages = allMessages;
+    return this._highlightMessagesUsing(username, this._isUserMessage);
   }
-  _filterUsers(request.username);
-}
 
-function _filterMessages(text) {
-  const messages = _retrieveMessages();
-  for (const message of messages) {
-    if (_messageHasText(message, text)) {
-      message.style.backgroundColor = "green";
-    } else {
+  byText(allMessages, text) {
+    this.allMessages = allMessages;
+    return this._highlightMessagesUsing(text, this._messageHasText);
+  }
+
+  reset(allMessages) {
+    this.allMessages = allMessages;
+    this.highlightCount = 0;
+    for (const message of this.allMessages) {
       message.style.backgroundColor = "";
     }
   }
-}
 
-function _filterUsers(username) {
-  const messages = _retrieveMessages();
-  for (const message of messages) {
-    if (_isUserMessage(message, username)) {
-      message.style.backgroundColor = "green";
-    } else {
-      message.style.backgroundColor = "";
-    }
-  }
-}
-
-function _isUserMessage(message, username) {
-  try {
-    const usernameFromChat = _retrieveUsername(message);
-    return usernameFromChat.toLowerCase() === username.toLowerCase();
-  } catch (e) {}
-  return false;
-}
-
-function _reset() {
-  const messages = _retrieveMessages();
-  messages.forEach((message) => {
-    message.style.backgroundColor = "";
-  });
-}
-
-function _messageHasText(message, text) {
-  try {
-    const messageTexts = _retrieveMessageTexts(message);
-    for (const messageText of messageTexts) {
-      if (messageText.textContent.toLowerCase().includes(text.toLowerCase())) {
-        return true;
+  _highlightMessagesUsing(text, func) {
+    this.highlightCount = 0;
+    for (const message of this.allMessages) {
+      if (func(message, text)) {
+        message.style.backgroundColor = "green";
+        this.highlightCount++;
+      } else {
+        message.style.backgroundColor = "";
       }
     }
+  }
+
+  _isUserMessage(message, username) {
+    try {
+      const usernameFromChat = uiReader.username(message);
+      return usernameFromChat.toLowerCase() === username.toLowerCase();
+    } catch (e) {}
     return false;
-  } catch (e) {}
-  return false;
+  }
+
+  _messageHasText(message, text) {
+    try {
+      const messageTexts = uiReader.textsInMessage(message);
+      for (const messageText of messageTexts) {
+        if (
+          messageText.textContent.toLowerCase().includes(text.toLowerCase())
+        ) {
+          return true;
+        }
+      }
+      return false;
+    } catch (e) {}
+    return false;
+  }
 }
 
-function _retrieveMessages() {
-  if (hasSevenTv === null) {
-    hasSevenTv =
-      document.querySelector(".seventv-chat-message-background") !== null;
-  }
-  return hasSevenTv
-    ? document.querySelectorAll(".seventv-chat-message-background")
-    : document.querySelectorAll(".chat-line__message");
-}
+browser.runtime.onMessage.addListener(messageHandler);
 
-function _retrieveMessageTexts(message) {
-  if (hasSevenTv === null) {
-    hasSevenTv =
-      document.querySelector(".seventv-chat-message-background") !== null;
-  }
-  return hasSevenTv
-    ? message
-        .querySelector(".seventv-chat-message-body")
-        .querySelectorAll(".text-token")
-    : message.querySelectorAll(".text-fragment");
-}
+const uiReader = new UIReader();
+const highlightedMessages = new HighlightedMessages();
 
-function _retrieveUsername(message) {
-  if (hasSevenTv === null) {
-    hasSevenTv =
-      document.querySelector(".seventv-chat-message-background") !== null;
+function messageHandler(request, sender, sendResponse) {
+  if (request.reset) {
+    highlightedMessages.reset(uiReader.messages());
+    return Promise.resolve({ reset: true });
   }
-  return hasSevenTv
-    ? message.querySelector(".seventv-chat-user-username").textContent
-    : message.dataset.aUser;
+
+  if (request.message) {
+    highlightedMessages.byText(uiReader.messages(), request.message);
+  } else if (request.username) {
+    highlightedMessages.byUser(uiReader.messages(), request.username);
+  }
+  return Promise.resolve({ response: highlightedMessages.highlightCount });
 }
