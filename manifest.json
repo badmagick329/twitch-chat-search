@@ -1,7 +1,7 @@
 {
   "manifest_version": 2,
   "name": "Twitch chat search",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "description": "Search twitch chat for messages containing a specific string or messages sent by a specific user. The result will be highlighted in green.",
   "icons": {
     "48": "icons/search-48.png"
