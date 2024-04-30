@@ -6,6 +6,9 @@
   "icons": {
     "48": "icons/search-48.png"
   },
+  "permissions": [
+    "tabs"
+  ],
   "browser_action": {
     "default_icon": {
       "32": "icons/search-32.png"
