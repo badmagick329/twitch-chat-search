@@ -44,12 +44,12 @@ class HighlightedMessages {
 
   byUser(allMessages, username) {
     this.allMessages = allMessages;
-    return this._highlightMessagesUsing(username, this._isUserMessage);
+    return this.#highlightMessagesUsing(username, this.#isUserMessage);
   }
 
   byText(allMessages, text) {
     this.allMessages = allMessages;
-    return this._highlightMessagesUsing(text, this._messageHasText);
+    return this.#highlightMessagesUsing(text, this.#messageHasText);
   }
 
   reset(allMessages) {
@@ -60,7 +60,7 @@ class HighlightedMessages {
     }
   }
 
-  _highlightMessagesUsing(text, func) {
+  #highlightMessagesUsing(text, func) {
     this.highlightCount = 0;
     for (const message of this.allMessages) {
       if (func(message, text)) {
@@ -72,7 +72,7 @@ class HighlightedMessages {
     }
   }
 
-  _isUserMessage(message, username) {
+  #isUserMessage(message, username) {
     try {
       const usernameFromChat = uiReader.username(message);
       return usernameFromChat.toLowerCase() === username.toLowerCase();
@@ -80,7 +80,7 @@ class HighlightedMessages {
     return false;
   }
 
-  _messageHasText(message, text) {
+  #messageHasText(message, text) {
     try {
       const messageTexts = uiReader.textsInMessage(message);
       for (const messageText of messageTexts) {
